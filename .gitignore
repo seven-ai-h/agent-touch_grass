@@ -1,0 +1,13 @@
+# env
+.env
+
+# dependencies
+node_modules/
+frontend/node_modules/
+
+# build output
+frontend/dist/
+frontend/.vite/
+
+# OS
+.DS_Store

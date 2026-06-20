@@ -1,0 +1,88 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap');
+
+:root {
+  /* Core palette */
+  --green: #3D8B37;
+  --green-light: #E8F5E4;
+  --green-mid: #6AB864;
+  --green-dark: #2A6325;
+  --bg: #F8FAF7;
+  --card: #ffffff;
+  --text: #1C1C1E;
+  --muted: #6B7280;
+  --border: #E2EBE1;
+  --amber: #F5A623;
+  --red: #E84B3A;
+  --purple: #7C6FE0;
+  --lavender: #F0EFFE;
+
+  /* Extended palette */
+  --green-card-border: #C8E6C5;
+  --amber-card-bg: #FEF9EE;
+  --amber-card-border: #FCE9B8;
+  --amber-badge-bg: #FEF3C7;
+  --amber-badge-text: #D97706;
+  --red-badge-bg: #FEE2E2;
+  --purple-card-border: #D4CFFB;
+  --vuln-low: #C8E6C5;
+  --vuln-mid: #FCE9B8;
+  --vuln-high: #FECACA;
+  --vuln-now: #FCA5A5;
+  --red-warning-bg: #FEF2F2;
+  --context-bg: #F9FAFB;
+  --chat-agent-bg: #F3F4F6;
+  --google-blue: #4285F4;
+  --google-green: #34A853;
+  --placeholder: #B0BAC9;
+  --browser-bg: #d1d5db;
+  --browser-page: #9ca3af;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+
+input, textarea {
+  font-family: 'DM Sans', sans-serif;
+}
+
+::placeholder {
+  color: var(--placeholder);
+  opacity: 1;
+}
+
+/* Grass blade animation */
+@keyframes sway {
+  0%   { transform: rotate(-4deg); }
+  100% { transform: rotate(4deg); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+
+.blade { transform-origin: bottom center; }
+.blade-1 { animation: sway 2.2s ease-in-out infinite alternate; }
+.blade-2 { animation: sway 2.4s ease-in-out infinite alternate; animation-delay: 0.2s; }
+.blade-3 { animation: sway 2.6s ease-in-out infinite alternate; animation-delay: 0.4s; }
+.blade-4 { animation: sway 2.5s ease-in-out infinite alternate; animation-delay: 0.1s; }
+.blade-5 { animation: sway 2.8s ease-in-out infinite alternate; animation-delay: 0.3s; }
+
+.float-dot   { animation: float 3.0s ease-in-out infinite; }
+.float-dot-2 { animation: float 2.5s ease-in-out infinite; animation-delay: 0.5s; }
+.float-dot-3 { animation: float 3.5s ease-in-out infinite; animation-delay: 1.0s; }
