@@ -1,4 +1,4 @@
-# MindGate
+# Touch Grass
 **An AI agent that stops you from doomscrolling — by actually talking to you.**
 
 Built at the UC Berkeley AI Hackathon 2026.
@@ -11,13 +11,13 @@ You open TikTok. You didn't mean to. You just unlocked your phone to check the t
 
 This isn't a willpower problem. Every platform you're trying to quit has a team of engineers whose full-time job is to make sure you don't. Existing tools — screen time limits, app blockers — you tap through in about three seconds and immediately feel worse.
 
-MindGate does something different. It gets in the way and asks what's actually going on.
+Touch Grass does something different. It gets in the way and asks what's actually going on.
 
 ---
 
 ## What it does
 
-MindGate is a Chrome extension. When you try to open a flagged site — TikTok, Instagram, Reddit, YouTube Shorts — it intercepts before the page loads and opens a conversation with an AI agent instead.
+Touch Grass is a Chrome extension. When you try to open a flagged site — TikTok, Instagram, Reddit, YouTube Shorts — it intercepts before the page loads and opens a conversation with an AI agent instead.
 
 The agent isn't generic. It knows things:
 
@@ -105,8 +105,8 @@ Claude reads the full context and generates a response that only makes sense for
 ## Setup
 
 ```bash
-git clone https://github.com/your-username/mindgate.git
-cd mindgate
+git clone https://github.com/your-username/Touch Grass.git
+cd Touch Grass
 
 # Frontend
 cd frontend
