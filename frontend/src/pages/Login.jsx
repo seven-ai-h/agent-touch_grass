@@ -1,4 +1,39 @@
+import { useState } from 'react'
+
 export default function Login({ onSuccess }) {
+  const [email, setEmail]       = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError]       = useState('')
+  const [loading, setLoading]   = useState(false)
+
+  async function handleLogin() {
+    setError('')
+    setLoading(true)
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+      if (!res.ok) {
+        setError('Invalid email or password.')
+        return
+      }
+      const data = await res.json()
+      localStorage.setItem('user_id', data.user_id)
+      localStorage.setItem('user_email', data.email)
+      onSuccess(data.user_id, data.email)
+    } catch {
+      setError('Could not reach server. Is the backend running?')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === 'Enter') handleLogin()
+  }
+
   return (
     <div style={{
       minHeight: 'calc(100vh - 47px)',
@@ -39,7 +74,6 @@ export default function Login({ onSuccess }) {
           display: 'flex', flexDirection: 'column',
           padding: '48px 40px', position: 'relative', overflow: 'hidden',
         }}>
-          {/* Logo */}
           <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '28px', color: 'var(--green)' }}>
             touch grass
           </div>
@@ -47,7 +81,6 @@ export default function Login({ onSuccess }) {
             your phone knows you. so does this.
           </div>
 
-          {/* Scene */}
           <div style={{ flex: 1, position: 'relative', marginTop: '32px' }}>
             {/* Sun */}
             <div style={{
@@ -61,7 +94,7 @@ export default function Login({ onSuccess }) {
               <div style={{ position: 'absolute', top: '-7px', left: '28px', width: '20px', height: '20px', background: '#fff', borderRadius: '50%' }} />
             </div>
 
-            {/* Floating phone (blocked app) */}
+            {/* Floating phone */}
             <div style={{
               position: 'absolute', bottom: '72px', right: '24px',
               width: '52px', height: '80px',
@@ -78,9 +111,9 @@ export default function Login({ onSuccess }) {
             </div>
 
             {/* Floating dots */}
-            <div className="float-dot" style={{ position: 'absolute', top: '88px', right: '96px', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--green-mid)' }} />
-            <div className="float-dot-2" style={{ position: 'absolute', top: '130px', left: '72px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--amber)' }} />
-            <div className="float-dot-3" style={{ position: 'absolute', top: '64px', left: '140px', width: '7px', height: '7px', borderRadius: '50%', background: 'var(--green-mid)' }} />
+            <div className="float-dot"   style={{ position: 'absolute', top: '88px',  right: '96px',  width: '10px', height: '10px', borderRadius: '50%', background: 'var(--green-mid)' }} />
+            <div className="float-dot-2" style={{ position: 'absolute', top: '130px', left: '72px',   width: '8px',  height: '8px',  borderRadius: '50%', background: 'var(--amber)' }} />
+            <div className="float-dot-3" style={{ position: 'absolute', top: '64px',  left: '140px',  width: '7px',  height: '7px',  borderRadius: '50%', background: 'var(--green-mid)' }} />
 
             {/* Ground + blades */}
             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
@@ -105,20 +138,8 @@ export default function Login({ onSuccess }) {
             get back outside.
           </h2>
           <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '40px' }}>
-            Connect your calendar and stop the spiral.
+            Sign in to see your stats and get coached.
           </p>
-
-          {/* Full name */}
-          <div style={{ position: 'relative', marginBottom: '28px' }}>
-            <i className="ti ti-user" style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', fontSize: '16px', lineHeight: 1 }} />
-            <input
-              type="text"
-              placeholder="Full name"
-              style={{ width: '100%', padding: '10px 0 10px 28px', border: 'none', borderBottom: '1.5px solid var(--border)', background: 'transparent', fontSize: '14px', outline: 'none', color: 'var(--text)' }}
-              onFocus={e => { e.target.style.borderBottomColor = 'var(--green)' }}
-              onBlur={e  => { e.target.style.borderBottomColor = 'var(--border)' }}
-            />
-          </div>
 
           {/* Email */}
           <div style={{ position: 'relative', marginBottom: '28px' }}>
@@ -126,46 +147,57 @@ export default function Login({ onSuccess }) {
             <input
               type="email"
               placeholder="Email"
-              style={{ width: '100%', padding: '10px 0 10px 28px', border: 'none', borderBottom: '1.5px solid var(--border)', background: 'transparent', fontSize: '14px', outline: 'none', color: 'var(--text)' }}
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              onKeyDown={handleKeyDown}
+              style={{ width: '100%', padding: '10px 0 10px 28px', border: 'none', borderBottom: '1.5px solid var(--border)', background: 'transparent', fontSize: '14px', outline: 'none', color: 'var(--text)', boxSizing: 'border-box' }}
               onFocus={e => { e.target.style.borderBottomColor = 'var(--green)' }}
               onBlur={e  => { e.target.style.borderBottomColor = 'var(--border)' }}
             />
           </div>
 
           {/* Password */}
-          <div style={{ position: 'relative', marginBottom: '40px' }}>
+          <div style={{ position: 'relative', marginBottom: error ? '16px' : '40px' }}>
             <i className="ti ti-lock" style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', fontSize: '16px', lineHeight: 1 }} />
             <input
               type="password"
               placeholder="Password"
-              style={{ width: '100%', padding: '10px 0 10px 28px', border: 'none', borderBottom: '1.5px solid var(--border)', background: 'transparent', fontSize: '14px', outline: 'none', color: 'var(--text)' }}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              onKeyDown={handleKeyDown}
+              style={{ width: '100%', padding: '10px 0 10px 28px', border: 'none', borderBottom: '1.5px solid var(--border)', background: 'transparent', fontSize: '14px', outline: 'none', color: 'var(--text)', boxSizing: 'border-box' }}
               onFocus={e => { e.target.style.borderBottomColor = 'var(--green)' }}
               onBlur={e  => { e.target.style.borderBottomColor = 'var(--border)' }}
             />
           </div>
 
+          {/* Error */}
+          {error && (
+            <p style={{ fontSize: '13px', color: 'var(--red)', marginBottom: '24px' }}>{error}</p>
+          )}
+
+          {/* Hint */}
+          <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '16px', opacity: 0.7 }}>
+            Try: jamie@berkeley.edu / touchgrass123
+          </p>
+
           {/* CTA */}
           <button
-            onClick={onSuccess}
+            onClick={handleLogin}
+            disabled={loading}
             style={{
               width: '100%', padding: '14px',
-              background: 'var(--green)', color: '#fff',
+              background: loading ? 'var(--muted)' : 'var(--green)', color: '#fff',
               fontWeight: 600, fontSize: '15px',
-              borderRadius: '50px', border: 'none',
+              borderRadius: '50px', border: 'none', cursor: loading ? 'default' : 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
               transition: 'background 0.15s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--green-dark)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'var(--green)' }}
+            onMouseEnter={e => { if (!loading) e.currentTarget.style.background = 'var(--green-dark)' }}
+            onMouseLeave={e => { if (!loading) e.currentTarget.style.background = 'var(--green)' }}
           >
-            Get started <i className="ti ti-arrow-right" />
+            {loading ? 'Signing in…' : <> Sign in <i className="ti ti-arrow-right" /> </>}
           </button>
-
-          {/* Footer */}
-          <div style={{ textAlign: 'center', fontSize: '13px', color: 'var(--muted)', marginTop: '24px' }}>
-            Already have an account?{' '}
-            <span style={{ color: 'var(--green)', fontWeight: 600, cursor: 'pointer' }}>Log in</span>
-          </div>
         </div>
       </div>
     </div>
