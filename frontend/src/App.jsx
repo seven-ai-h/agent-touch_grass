@@ -10,43 +10,68 @@ const TABS = [
 ]
 
 export default function App() {
-  const [active, setActive] = useState('login')
+  const [active,    setActive]    = useState('login')
+  const [userId,    setUserId]    = useState(localStorage.getItem('user_id') || null)
+  const [userEmail, setUserEmail] = useState(localStorage.getItem('user_email') || null)
+
+  function handleLogin(id, email) {
+    setUserId(id)
+    setUserEmail(email)
+    setActive('dashboard')
+  }
+
+  function handleLogout() {
+    localStorage.removeItem('user_id')
+    localStorage.removeItem('user_email')
+    setUserId(null)
+    setUserEmail(null)
+    setActive('login')
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       {/* Tab bar */}
       <div style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-        background: '#fff',
-        borderBottom: '1.5px solid var(--border)',
-        display: 'flex',
+        position: 'sticky', top: 0, zIndex: 100,
+        background: '#fff', borderBottom: '1.5px solid var(--border)',
+        display: 'flex', alignItems: 'center',
       }}>
         {TABS.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActive(tab.id)}
             style={{
-              padding: '14px 20px',
-              fontSize: '13px',
-              fontWeight: 500,
-              border: 'none',
-              background: 'none',
-              cursor: 'pointer',
+              padding: '14px 20px', fontSize: '13px', fontWeight: 500,
+              border: 'none', background: 'none', cursor: 'pointer',
               color: active === tab.id ? 'var(--green)' : 'var(--muted)',
               borderBottom: active === tab.id ? '2px solid var(--green)' : '2px solid transparent',
-              marginBottom: '-1.5px',
-              transition: 'color 0.15s',
+              marginBottom: '-1.5px', transition: 'color 0.15s',
             }}
           >
             {tab.label}
           </button>
         ))}
+
+        {/* Logged-in user + logout */}
+        {userId && (
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '12px', paddingRight: '20px' }}>
+            <span style={{ fontSize: '13px', color: 'var(--muted)' }}>{userEmail}</span>
+            <button
+              onClick={handleLogout}
+              style={{
+                fontSize: '12px', fontWeight: 600, color: 'var(--red)',
+                background: 'none', border: '1px solid var(--red)',
+                borderRadius: '20px', padding: '4px 12px', cursor: 'pointer',
+              }}
+            >
+              Log out
+            </button>
+          </div>
+        )}
       </div>
 
-      {active === 'login'     && <Login onSuccess={() => setActive('dashboard')} />}
-      {active === 'dashboard' && <Dashboard />}
+      {active === 'login'     && <Login onSuccess={handleLogin} />}
+      {active === 'dashboard' && <Dashboard userId={userId} userEmail={userEmail} />}
       {active === 'popup'     && <InterventionPopup />}
     </div>
   )

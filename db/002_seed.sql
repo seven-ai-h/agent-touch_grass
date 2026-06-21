@@ -4,7 +4,7 @@ INSERT INTO users (id, email, password_hash, identity_statement, agent_tone, hob
 (
     '00000000-0000-0000-0000-000000000001',
     'jamie@berkeley.edu',
-    '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    crypt('touchgrass123', gen_salt('bf', 10)),
     'I am an athlete and a builder.',
     'tough_love',
     '{"basketball": 0.34, "music_production": 0.28, "cooking": 0.18}',
@@ -13,7 +13,7 @@ INSERT INTO users (id, email, password_hash, identity_statement, agent_tone, hob
 (
     '00000000-0000-0000-0000-000000000002',
     'alex@berkeley.edu',
-    '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    crypt('touchgrass123', gen_salt('bf', 10)),
     'I am a designer who codes.',
     'gentle',
     '{"drawing": 0.40, "hiking": 0.30, "photography": 0.20}',
@@ -22,7 +22,7 @@ INSERT INTO users (id, email, password_hash, identity_statement, agent_tone, hob
 (
     '00000000-0000-0000-0000-000000000003',
     'sam@berkeley.edu',
-    '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    crypt('touchgrass123', gen_salt('bf', 10)),
     'I am a musician and a student.',
     'coach',
     '{"guitar": 0.45, "cooking": 0.25, "photography": 0.15}',
@@ -31,7 +31,7 @@ INSERT INTO users (id, email, password_hash, identity_statement, agent_tone, hob
 (
     '00000000-0000-0000-0000-000000000004',
     'hiro@berkeley.edu',
-    '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    crypt('touchgrass123', gen_salt('bf', 10)),
     'I am a builder and an AI researcher.',
     'tough_love',
     '{"coding_projects": 0.40, "running": 0.30, "reading": 0.20}',
@@ -40,7 +40,7 @@ INSERT INTO users (id, email, password_hash, identity_statement, agent_tone, hob
 (
     '00000000-0000-0000-0000-000000000005',
     'jenni@berkeley.edu',
-    '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    crypt('touchgrass123', gen_salt('bf', 10)),
     'I am a creative and a connector.',
     'gentle',
     '{"painting": 0.38, "yoga": 0.32, "journaling": 0.20}',
