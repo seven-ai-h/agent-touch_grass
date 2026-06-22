@@ -1,2 +1,39 @@
-TO RUN
-npm run dev
+HOW TO START THE SERVER
+=======================
+
+1. Start Docker (open Docker Desktop app)
+
+2. Start the database
+   cd /Users/hiroaihara/Documents/agent-touch_grass
+   docker compose up -d
+
+3. Start Qdrant (vector DB) — only if not already running
+   docker run -d -p 6333:6333 --name qdrant qdrant/qdrant
+   (if it says "already in use", it's already running — skip this)
+
+4. Open Ollama (click the app in Applications or menu bar llama icon)
+   Models needed: qwen2.5:3b, mxbai-embed-large
+
+5. Start the backend
+   cd /Users/hiroaihara/Documents/agent-touch_grass/backend
+   python3 -m uvicorn main:app --reload
+
+6. Start the frontend (new terminal tab)
+   cd /Users/hiroaihara/Documents/agent-touch_grass/frontend
+   npm run dev
+
+7. Open browser → http://localhost:5173
+
+LOGIN
+-----
+hiro@berkeley.edu   / touchgrass123
+jamie@berkeley.edu  / touchgrass123
+alex@berkeley.edu   / touchgrass123
+sam@berkeley.edu    / touchgrass123
+jenni@berkeley.edu  / touchgrass123
+
+NOTES
+-----
+- If port 8000 is busy: kill $(lsof -ti :8000)
+- If port 5173 is busy: kill $(lsof -ti :5173)
+- Qdrant runs on port 6333, Postgres on 5433, backend on 8000, frontend on 5173
