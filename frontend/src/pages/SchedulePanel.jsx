@@ -11,9 +11,9 @@ function hourLabel(h) {
 }
 
 const BLOCK_STYLE = {
-  focus:   { background: 'var(--green-mid)', border: '1px solid var(--green)' },
-  leisure: { background: 'var(--amber-card-bg)', border: '1px solid var(--amber-card-border)' },
-  empty:   { background: 'var(--bg)',            border: '1px solid var(--border)' },
+  focus:   { background: 'var(--green-light)', border: '2px solid var(--green)',        icon: '⚡', iconColor: 'var(--green)' },
+  leisure: { background: 'var(--amber-card-bg)', border: '2px solid var(--amber)',      icon: '★', iconColor: 'var(--amber)' },
+  empty:   { background: 'var(--bg)',            border: '1px solid var(--border)',     icon: '',  iconColor: '' },
 }
 
 // build a lookup: calEvents[day][hour] = title
@@ -38,6 +38,16 @@ export default function SchedulePanel({ userId }) {
   const [calConnected, setCalConnected] = useState(false)
   const [calEvents, setCalEvents] = useState({})  // {day: {hour: title}}
   const [justConnected, setJustConnected] = useState(false)
+  const [weekOffset, setWeekOffset] = useState(0)  // 0 = this week, 1 = next, -1 = last
+
+  // Compute Monday of the displayed week
+  function getMondayOfWeek(offset = 0) {
+    const d = new Date()
+    const monday = new Date(d)
+    monday.setDate(d.getDate() - ((d.getDay() + 6) % 7) + offset * 7)
+    monday.setHours(0, 0, 0, 0)
+    return monday
+  }
 
   const apiPath = useCallback(
     base => userId ? `${base}?user_id=${userId}` : base,
@@ -53,23 +63,33 @@ export default function SchedulePanel({ userId }) {
     }
   }, [])
 
-  // load schedule + calendar events
+  // fetch schedule + cal events whenever the displayed week changes
   useEffect(() => {
     setLoading(true)
+    setSaved(true)
+    const monday    = getMondayOfWeek(weekOffset)
+    const mondayStr = monday.toISOString().split('T')[0]
+
+    const schedUrl = userId
+      ? `/api/schedule?user_id=${userId}&week_start=${mondayStr}`
+      : `/api/schedule?week_start=${mondayStr}`
+    const calUrl = userId
+      ? `/api/calendar/events?user_id=${userId}&week_start=${mondayStr}`
+      : `/api/calendar/events?week_start=${mondayStr}`
+
     Promise.all([
-      fetch(apiPath('/api/schedule')).then(r => r.json()),
-      fetch(apiPath('/api/calendar/events')).then(r => r.json()),
+      fetch(schedUrl).then(r => r.json()),
+      fetch(calUrl).then(r => r.json()),
     ]).then(([schedData, calData]) => {
       const normalised = {}
       Object.entries(schedData).forEach(([day, hours]) => {
         normalised[String(day)] = hours
       })
       setGrid(normalised)
-      setSaved(true)
       setCalConnected(calData.connected)
       setCalEvents(calData.connected ? buildEventMap(calData.events) : {})
     }).finally(() => setLoading(false))
-  }, [userId, apiPath])
+  }, [userId, apiPath, weekOffset])
 
   function cellType(dayIdx, hour) {
     return grid[String(dayIdx)]?.[String(hour)] ?? null
@@ -95,8 +115,12 @@ export default function SchedulePanel({ userId }) {
 
   async function handleSave() {
     setSaving(true)
+    const mondayStr = getMondayOfWeek(weekOffset).toISOString().split('T')[0]
+    const saveUrl = userId
+      ? `/api/schedule?user_id=${userId}&week_start=${mondayStr}`
+      : `/api/schedule?week_start=${mondayStr}`
     try {
-      await fetch(apiPath('/api/schedule'), {
+      await fetch(saveUrl, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ schedule: grid }),
@@ -126,18 +150,46 @@ export default function SchedulePanel({ userId }) {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <div style={{ fontSize: '16px', fontWeight: 600 }}>Weekly Schedule</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ fontSize: '16px', fontWeight: 600 }}>Weekly Schedule</div>
+            {/* Week navigation */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <button
+                onClick={() => setWeekOffset(w => w - 1)}
+                style={{ width: '26px', height: '26px', borderRadius: '6px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px' }}
+                title="Previous week"
+              >‹</button>
+              <button
+                onClick={() => setWeekOffset(0)}
+                style={{ padding: '3px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: weekOffset === 0 ? 'var(--green-light)' : 'transparent', color: weekOffset === 0 ? 'var(--green)' : 'var(--muted)', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}
+                title="Go to current week"
+              >Today</button>
+              <button
+                onClick={() => setWeekOffset(w => w + 1)}
+                style={{ width: '26px', height: '26px', borderRadius: '6px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px' }}
+                title="Next week"
+              >›</button>
+            </div>
+          </div>
           <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>
-            Paint focus and leisure blocks. Agent respects these windows.
+            Paint focus and leisure blocks for this week. Changes only affect the week you're viewing.
           </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           {/* Google Calendar connect / status */}
           {calConnected ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--green)', background: 'var(--green-light)', border: '1px solid var(--green-card-border)', borderRadius: '20px', padding: '6px 14px' }}>
-              <i className="ti ti-calendar-check" />
-              Google Calendar synced
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--green)', background: 'var(--green-light)', border: '1px solid var(--green-card-border)', borderRadius: '20px', padding: '6px 14px' }}>
+                <i className="ti ti-calendar-check" />
+                Google Calendar synced
+              </div>
+              <button
+                onClick={connectGoogle}
+                style={{ fontSize: '11px', color: 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+              >
+                Reconnect
+              </button>
             </div>
           ) : (
             <button
@@ -195,9 +247,14 @@ export default function SchedulePanel({ userId }) {
 
       {/* Legend */}
       <div style={{ display: 'flex', gap: '16px', fontSize: '11px', color: 'var(--muted)', flexWrap: 'wrap' }}>
-        <LegendDot color="var(--green-mid)" border="var(--green)" label="Focus — phone triggers intervention" />
-        <LegendDot color="var(--amber-card-bg)" border="var(--amber-card-border)" label="Leisure — relaxed mode" />
-        {calConnected && <LegendDot color="var(--lavender)" border="var(--purple-card-border)" label="Google Calendar event" />}
+        <LegendDot color="var(--green-light)" border="var(--green)" label="⚡ Focus block" />
+        <LegendDot color="var(--amber-card-bg)" border="var(--amber)" label="★ Leisure block" />
+        {calConnected && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'var(--bg)', borderLeft: '3px solid var(--purple)', border: '1px solid var(--border)', borderLeft: '3px solid var(--purple)' }} />
+            <span>Google Calendar event</span>
+          </div>
+        )}
         <LegendDot color="var(--bg)" border="var(--border)" label="Unscheduled" />
       </div>
 
@@ -207,17 +264,25 @@ export default function SchedulePanel({ userId }) {
 
           {/* Day headers */}
           <div />
-          {DAYS.map((day, di) => (
-            <div
-              key={day}
-              onClick={() => clearDay(di)}
-              title={`Clear ${day}`}
-              style={{ textAlign: 'center', paddingBottom: '8px', fontSize: '11px', fontWeight: 600, color: 'var(--muted)', letterSpacing: '0.5px', cursor: 'pointer', userSelect: 'none' }}
-            >
-              {day.toUpperCase()}
-              <div style={{ fontSize: '9px', fontWeight: 400, color: 'var(--border)', marginTop: '1px' }}>tap to clear</div>
-            </div>
-          ))}
+          {DAYS.map((day, di) => {
+            const monday = getMondayOfWeek(weekOffset)
+            const cellDate = new Date(monday)
+            cellDate.setDate(monday.getDate() + di)
+            const isToday = cellDate.toDateString() === new Date().toDateString()
+            const dateLabel = `${cellDate.getMonth() + 1}/${cellDate.getDate()}`
+            return (
+              <div
+                key={day}
+                onClick={() => clearDay(di)}
+                title={`Clear ${day}`}
+                style={{ textAlign: 'center', paddingBottom: '8px', fontSize: '11px', fontWeight: 600, color: isToday ? 'var(--green)' : 'var(--muted)', letterSpacing: '0.5px', cursor: 'pointer', userSelect: 'none' }}
+              >
+                {day.toUpperCase()}
+                <div style={{ fontSize: '10px', fontWeight: isToday ? 700 : 400, color: isToday ? 'var(--green)' : 'var(--muted)', marginTop: '2px' }}>{dateLabel}</div>
+                <div style={{ fontSize: '9px', fontWeight: 400, color: 'var(--border)', marginTop: '1px' }}>tap to clear</div>
+              </div>
+            )
+          })}
 
           {/* Hour rows */}
           {HOURS.map(hour => (
@@ -229,28 +294,21 @@ export default function SchedulePanel({ userId }) {
               </div>
 
               {DAYS.map((_, di) => {
-                const blockType  = cellType(di, hour)
-                const calTitle   = calEvents[di]?.[hour]
-                const hasCalEvent = calEvents[di]?.[hour] !== undefined
+                const blockType   = cellType(di, hour)
+                const calTitle    = calEvents[di]?.[hour]        // non-empty string = first slot of event
+                const hasCalEvent = calEvents[di]?.[hour] !== undefined  // any slot of event
 
-                let cellBg, cellBorder
-                if (blockType) {
-                  cellBg     = BLOCK_STYLE[blockType].background
-                  cellBorder = BLOCK_STYLE[blockType].border
-                } else if (hasCalEvent) {
-                  cellBg     = 'var(--lavender)'
-                  cellBorder = '1px solid var(--purple-card-border)'
-                } else {
-                  cellBg     = BLOCK_STYLE.empty.background
-                  cellBorder = BLOCK_STYLE.empty.border
-                }
+                const cellBg     = blockType ? BLOCK_STYLE[blockType].background : BLOCK_STYLE.empty.background
+                const cellBorder = blockType ? BLOCK_STYLE[blockType].border      : BLOCK_STYLE.empty.border
 
                 return (
                   <div
                     key={`${di}-${hour}`}
                     onClick={() => toggleCell(di, hour)}
                     style={{
-                      height: '32px', background: cellBg, border: cellBorder,
+                      height: '32px', background: cellBg,
+                      border: cellBorder,
+                      borderLeft: hasCalEvent ? '3px solid var(--purple)' : undefined,
                       cursor: 'pointer', transition: 'background 0.08s',
                       margin: '1px', borderRadius: '4px',
                       overflow: 'hidden', position: 'relative',
@@ -258,16 +316,37 @@ export default function SchedulePanel({ userId }) {
                     onMouseEnter={e => { e.currentTarget.style.opacity = '0.75' }}
                     onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
                   >
+                    {/* Block type icon — top-right corner, always visible */}
+                    {blockType && (
+                      <span style={{
+                        position: 'absolute', top: '2px', right: '3px',
+                        fontSize: '9px', color: BLOCK_STYLE[blockType].iconColor,
+                        opacity: 0.85, pointerEvents: 'none', lineHeight: 1,
+                      }}>
+                        {BLOCK_STYLE[blockType].icon}
+                      </span>
+                    )}
+                    {/* Calendar event title — first slot only, left-aligned */}
                     {calTitle && (
                       <div style={{
-                        position: 'absolute', inset: 0, padding: '0 4px',
-                        fontSize: '9px', fontWeight: 600, color: 'var(--purple)',
+                        position: 'absolute', inset: 0,
+                        paddingLeft: '5px', paddingRight: '14px',
+                        fontSize: '8px', fontWeight: 700,
+                        color: blockType ? 'var(--purple)' : 'var(--purple)',
                         display: 'flex', alignItems: 'center',
                         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                         pointerEvents: 'none',
                       }}>
                         {calTitle}
                       </div>
+                    )}
+                    {/* Continuation bar for multi-slot cal events (no title) */}
+                    {hasCalEvent && !calTitle && (
+                      <div style={{
+                        position: 'absolute', inset: 0,
+                        background: 'rgba(139,92,246,0.06)',
+                        pointerEvents: 'none',
+                      }} />
                     )}
                   </div>
                 )

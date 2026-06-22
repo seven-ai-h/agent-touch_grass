@@ -10,9 +10,9 @@ const TABS = [
 ]
 
 export default function App() {
-  const [active,    setActive]    = useState('login')
   const [userId,    setUserId]    = useState(localStorage.getItem('user_id') || null)
   const [userEmail, setUserEmail] = useState(localStorage.getItem('user_email') || null)
+  const [active,    setActive]    = useState(localStorage.getItem('user_id') ? 'dashboard' : 'login')
 
   function handleLogin(id, email) {
     setUserId(id)
@@ -72,7 +72,7 @@ export default function App() {
 
       {active === 'login'     && <Login onSuccess={handleLogin} />}
       {active === 'dashboard' && <Dashboard userId={userId} userEmail={userEmail} />}
-      {active === 'popup'     && <InterventionPopup />}
+      {active === 'popup'     && <InterventionPopup userId={userId} />}
     </div>
   )
 }

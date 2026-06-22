@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from db import get_pool, close_pool
-from routers import auth, dashboard, schedule, google_auth, calendar, report, interventions
+from routers import auth, dashboard, schedule, google_auth, calendar, report, interventions, agent
 
 app = FastAPI()
 
@@ -19,6 +19,7 @@ app.include_router(schedule.router, prefix="/api")
 app.include_router(calendar.router, prefix="/api")
 app.include_router(report.router, prefix="/api")
 app.include_router(interventions.router, prefix="/api")
+app.include_router(agent.router, prefix="/api")
 
 @app.on_event("startup")
 async def startup():

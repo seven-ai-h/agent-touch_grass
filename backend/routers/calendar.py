@@ -12,7 +12,7 @@ load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
 router = APIRouter()
 DEFAULT_USER = "00000000-0000-0000-0000-000000000001"
-SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
+SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
 
 def _creds(refresh_token: str) -> Credentials:
@@ -27,7 +27,10 @@ def _creds(refresh_token: str) -> Credentials:
 
 
 @router.get("/calendar/events")
-async def get_calendar_events(user_id: str = Query(default=DEFAULT_USER)):
+async def get_calendar_events(
+    user_id: str = Query(default=DEFAULT_USER),
+    week_start: str = Query(default=None),  # YYYY-MM-DD; defaults to current Monday
+):
     pool = await get_pool()
     row = await pool.fetchrow(
         "SELECT google_refresh_token FROM users WHERE id = $1", user_id
@@ -44,17 +47,20 @@ async def get_calendar_events(user_id: str = Query(default=DEFAULT_USER)):
 
         service = build("calendar", "v3", credentials=creds, cache_discovery=False)
 
-        now = datetime.now(timezone.utc)
-        week_start = (now - timedelta(days=now.weekday())).replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
-        week_end = week_start + timedelta(days=7)
+        if week_start:
+            ws = datetime.fromisoformat(week_start).replace(tzinfo=timezone.utc)
+        else:
+            now = datetime.now(timezone.utc)
+            ws = (now - timedelta(days=now.weekday())).replace(
+                hour=0, minute=0, second=0, microsecond=0
+            )
+        week_end = ws + timedelta(days=7)
 
         result = (
             service.events()
             .list(
                 calendarId="primary",
-                timeMin=week_start.isoformat(),
+                timeMin=ws.isoformat(),
                 timeMax=week_end.isoformat(),
                 singleEvents=True,
                 orderBy="startTime",

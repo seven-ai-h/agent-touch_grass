@@ -13,7 +13,7 @@ os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
 router = APIRouter()
 
-SCOPES       = ["https://www.googleapis.com/auth/calendar.readonly"]
+SCOPES       = ["https://www.googleapis.com/auth/calendar"]
 REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/api/auth/google/callback")
 
 CLIENT_CONFIG = {
@@ -61,4 +61,4 @@ async def google_callback(code: str, state: str):
         state,
     )
 
-    return RedirectResponse(url="http://localhost:5173?calendar=connected")
+    return RedirectResponse(url="http://localhost:5173?calendar=connected", headers={"Cache-Control": "no-cache"})
